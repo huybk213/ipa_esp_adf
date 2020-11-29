@@ -42,6 +42,14 @@ BaseType_t __attribute__((weak)) xTaskCreateRestrictedPinnedToCore(const TaskPar
 esp_err_t audio_thread_create(audio_thread_t *p_handle, const char *name, void(*main_func)(void *arg), void *arg,
                               uint32_t stack, int prio, bool stack_in_ext, int core_id)
 {
+#if CONFIG_IDF_TARGET_ESP32S2		// HuyTV
+    ESP_LOGE(TAG, "[HuyTV] For esp32s2, audio thread stack_in_ext = 0");
+    // vTaskDelay(100);
+    // if (core_id == 0)
+    //     core_id = 1;        // HuyTV workaround for esp32s2
+
+    stack_in_ext = 0;       
+#endif	// End
     StackType_t *task_stack = NULL;
     if (stack_in_ext && audio_mem_spiram_stack_is_enabled()) {
         /*

@@ -132,7 +132,11 @@ static esp_err_t _tcp_write(audio_element_handle_t self, char *buffer, int len, 
         _get_socket_error_code_reason("TCP write", tcp->sock);
         return ESP_FAIL;
     }
-    ESP_LOGD(TAG, "read len=%d, wlen=%d pos=%d", len, wlen, (int)info.byte_pos);
+    #if 0
+        ESP_LOGD(TAG, "read len=%d, wlen=%d pos=%d", len, wlen, (int)info.byte_pos);
+    #else   // HuyTV
+        ESP_LOGD(TAG, "read len=%d, wlen=%d\r\n", len, wlen);
+    #endif
     return wlen;
 }
 
