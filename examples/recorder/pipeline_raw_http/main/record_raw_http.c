@@ -30,6 +30,18 @@
 #include "filter_resample.h"
 #include "input_key_service.h"
 
+#if __has_include("esp_idf_version.h")
+#include "esp_idf_version.h"
+#else
+#define ESP_IDF_VERSION_VAL(major, minor, patch) 1
+#endif
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 1, 0))
+#include "esp_netif.h"
+#else
+#include "tcpip_adapter.h"
+#endif
+
 static const char *TAG = "REC_RAW_HTTP";
 
 #define DEMO_EXIT_BIT (BIT0)
@@ -95,36 +107,36 @@ esp_err_t _http_stream_event_handle(http_stream_event_msg_t *msg)
     return ESP_OK;
 }
 
-static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx)
-{
-    audio_element_handle_t http_stream_writer = (audio_element_handle_t)ctx;
-    if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK) {
-        switch ((int)evt->data) {
-            case INPUT_KEY_USER_ID_MODE:
-                ESP_LOGW(TAG, "[ * ] [Set] input key event, exit the demo ...");
-                xEventGroupSetBits(EXIT_FLAG, DEMO_EXIT_BIT);
-                break;
-            case INPUT_KEY_USER_ID_REC:
-                ESP_LOGI(TAG, "[ * ] [Rec] input key event, resuming pipeline ...");
-                audio_element_set_uri(http_stream_writer, CONFIG_SERVER_URI);
-                audio_pipeline_run(pipeline);
-                break;
-        }
-    } else if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE || evt->type == INPUT_KEY_SERVICE_ACTION_PRESS_RELEASE) {
-        switch ((int)evt->data) {
-            case INPUT_KEY_USER_ID_REC:
-                ESP_LOGI(TAG, "[ * ] [Rec] key released, stop pipeline ...");
-                audio_pipeline_stop(pipeline);
-                audio_pipeline_wait_for_stop(pipeline);
-                audio_pipeline_stop(pipeline);
-                audio_pipeline_wait_for_stop(pipeline);
-                audio_pipeline_terminate(pipeline);
-                break;
-        }
-    }
+// static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx)
+// {
+//     audio_element_handle_t http_stream_writer = (audio_element_handle_t)ctx;
+//     if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK) {
+//         switch ((int)evt->data) {
+//             case INPUT_KEY_USER_ID_MODE:
+//                 ESP_LOGW(TAG, "[ * ] [Set] input key event, exit the demo ...");
+//                 xEventGroupSetBits(EXIT_FLAG, DEMO_EXIT_BIT);
+//                 break;
+//             case INPUT_KEY_USER_ID_REC:
+//                 ESP_LOGI(TAG, "[ * ] [Rec] input key event, resuming pipeline ...");
+//                 audio_element_set_uri(http_stream_writer, CONFIG_SERVER_URI);
+//                 audio_pipeline_run(pipeline);
+//                 break;
+//         }
+//     } else if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE || evt->type == INPUT_KEY_SERVICE_ACTION_PRESS_RELEASE) {
+//         switch ((int)evt->data) {
+//             case INPUT_KEY_USER_ID_REC:
+//                 ESP_LOGI(TAG, "[ * ] [Rec] key released, stop pipeline ...");
+//                 audio_pipeline_stop(pipeline);
+//                 audio_pipeline_wait_for_stop(pipeline);
+//                 audio_pipeline_stop(pipeline);
+//                 audio_pipeline_wait_for_stop(pipeline);
+//                 audio_pipeline_terminate(pipeline);
+//                 break;
+//         }
+//     }
 
-    return ESP_OK;
-}
+//     return ESP_OK;
+// }
 
 void app_main(void)
 {
@@ -142,7 +154,12 @@ void app_main(void)
         ESP_ERROR_CHECK(nvs_flash_erase());
         err = nvs_flash_init();
     }
+
+#if (ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 1, 0))
+    ESP_ERROR_CHECK(esp_netif_init());
+#else
     tcpip_adapter_init();
+#endif
 
     ESP_LOGI(TAG, "[ 1 ] Initialize Button Peripheral & Connect to wifi network");
     // Initialize peripherals management
@@ -191,14 +208,14 @@ void app_main(void)
     const char *link_tag[2] = {"i2s", "http"};
     audio_pipeline_link(pipeline, &link_tag[0], 2);
 
-    // Initialize Button peripheral
-    audio_board_key_init(set);
-    input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
-    input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
-    input_cfg.handle = set;
-    periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
-    input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
-    periph_service_set_callback(input_ser, input_key_service_cb, (void *)http_stream_writer);
+    // // Initialize Button peripheral
+    // audio_board_key_init(set);
+    // input_key_service_info_t input_key_info[] = INPUT_KEY_DEFAULT_INFO();
+    // input_key_service_cfg_t input_cfg = INPUT_KEY_SERVICE_DEFAULT_CONFIG();
+    // input_cfg.handle = set;
+    // periph_service_handle_t input_ser = input_key_service_create(&input_cfg);
+    // input_key_service_add_key(input_ser, input_key_info, INPUT_KEY_NUM);
+    // periph_service_set_callback(input_ser, input_key_service_cb, (void *)http_stream_writer);
 
     i2s_stream_set_clk(i2s_stream_reader, 16000, 16, 2);
 
