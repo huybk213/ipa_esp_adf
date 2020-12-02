@@ -9,7 +9,9 @@ set(COMPONENT_ADD_INCLUDEDIRS ./include
                             ./driver/zl38063/api_lib
                             ./driver/zl38063/example_apps
                             ./driver/zl38063/firmware
-                            ./driver/include)
+                            ./driver/include
+                            ./driver/ac101
+                            ./driver/es8388)
 
 # Edit following two lines to set component requirements (see docs)
 set(COMPONENT_REQUIRES )
@@ -30,7 +32,8 @@ set(COMPONENT_SRCS ./audio_hal.c
                     ./driver/zl38063/example_apps/tw_ldcfg.c
                     ./driver/zl38063/example_apps/tw_ldfw.c
                     ./driver/zl38063/example_apps/tw_ldfwcfg.c
-                    ./driver/zl38063/example_apps/tw_spi_access.c)
+                    ./driver/zl38063/example_apps/tw_spi_access.c
+                    ./driver/ac101/ac101.c)
 
 register_component()
 

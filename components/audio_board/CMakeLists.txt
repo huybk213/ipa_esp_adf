@@ -70,4 +70,13 @@ set(COMPONENT_SRCS
 )
 endif()
 
+if (CONFIG_ESP32_AITHINKER_A1S_BOARD)
+message(STATUS "Current board name is " CONFIG_ESP32_AITHINKER_A1S_BOARD)
+list(APPEND COMPONENT_ADD_INCLUDEDIRS ./aithinker_a1s)
+set(COMPONENT_SRCS
+./aithinker_a1s/board.c
+./aithinker_a1s/board_pins_config.c
+)
+endif()
+
 register_component()
