@@ -1,5 +1,5 @@
 
-#include "AC101.h"
+#include "ac101.h"
 #include <string.h>
 #include "esp_log.h"
 #include "driver/i2c.h"
