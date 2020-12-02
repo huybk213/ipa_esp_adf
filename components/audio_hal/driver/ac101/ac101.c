@@ -13,6 +13,8 @@
 
 #define AC101_TAG  "AC101_DRIVER"
 #define IIC_PORT	I2C_NUM_1
+
+#ifdef CONFIG_ESP32_AITHINKER_A1S_BOARD
 // #define IIC_CLK 18
 // #define IIC_DATA 19
 // #define GPIO_PA_EN           GPIO_NUM_21
@@ -511,5 +513,5 @@ void AC101_pa_power(bool enable)
     }
 }
 
-
+#endif /* CONFIG_ESP32_AITHINKER_A1S_BOARD */
 
