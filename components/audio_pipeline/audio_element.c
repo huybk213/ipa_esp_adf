@@ -475,7 +475,7 @@ void audio_element_task(void *pv)
     el->buf = NULL;
     el->stopping = false;
     el->task_run = false;
-    ESP_LOGD(TAG, "[%s-%p] el task deleted,%d", el->tag, el, uxTaskGetStackHighWaterMark(NULL));
+    ESP_LOGW(TAG, "[%s-%p] el task deleted,%d", el->tag, el, uxTaskGetStackHighWaterMark(NULL));
     xEventGroupSetBits(el->state_event, STOPPED_BIT);
     xEventGroupSetBits(el->state_event, RESUMED_BIT);
     xEventGroupSetBits(el->state_event, TASK_DESTROYED_BIT);
@@ -1101,7 +1101,7 @@ static inline esp_err_t __audio_element_term(audio_element_handle_t el, TickType
     EventBits_t uxBits = xEventGroupWaitBits(el->state_event, TASK_DESTROYED_BIT, false, true, ticks_to_wait);
     esp_err_t ret = ESP_FAIL;
     if (uxBits & TASK_DESTROYED_BIT ) {
-        ESP_LOGD(TAG, "[%s-%p] Element task destroyed", el->tag, el);
+        ESP_LOGW(TAG, "[%s-%p] Element task destroyed", el->tag, el);
         ret = ESP_OK;
     } else {
         ESP_LOGW(TAG, "[%s-%p] Element task destroy timeout[%d]", el->tag, el, ticks_to_wait);

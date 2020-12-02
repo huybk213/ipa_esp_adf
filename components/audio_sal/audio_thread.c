@@ -36,20 +36,23 @@ static const char *TAG = "AUDIO_THREAD";
 BaseType_t __attribute__((weak)) xTaskCreateRestrictedPinnedToCore(const TaskParameters_t *const pxTaskDefinition, TaskHandle_t *pxCreatedTask, const BaseType_t xCoreID)
 {
     ESP_LOGE(TAG, "Not found right %s.\r\nPlease enter IDF-PATH with \"cd $IDF_PATH\" and apply the IDF patch with \"git apply $ADF_PATH/idf_patches/idf_v3.3_freertos.patch\" first\r\n", __func__);
+    ESP_LOGE(TAG, "portUSING_MPU_WRAPPERS = %d", portUSING_MPU_WRAPPERS);
+    
     return pdFALSE;
 }
 
 esp_err_t audio_thread_create(audio_thread_t *p_handle, const char *name, void(*main_func)(void *arg), void *arg,
                               uint32_t stack, int prio, bool stack_in_ext, int core_id)
 {
-#if CONFIG_IDF_TARGET_ESP32S2		// HuyTV
-    ESP_LOGE(TAG, "[HuyTV] For esp32s2, audio thread stack_in_ext = 0");
-    // vTaskDelay(100);
-    // if (core_id == 0)
-    //     core_id = 1;        // HuyTV workaround for esp32s2
+// #if CONFIG_IDF_TARGET_ESP32S2		// HuyTV
+    ESP_LOGW(TAG, "[HuyTV] stack_in_ext %s, force to false", stack_in_ext ? "TRUE" : "FALSE");
+//     // vTaskDelay(100);
+//     // if (core_id == 0)
+//     //     core_id = 1;        // HuyTV workaround for esp32s2
 
     stack_in_ext = 0;       
-#endif	// End
+// #endif	// End
+    BaseType_t error;
     StackType_t *task_stack = NULL;
     if (stack_in_ext && audio_mem_spiram_stack_is_enabled()) {
         /*
@@ -76,13 +79,16 @@ esp_err_t audio_thread_create(audio_thread_t *p_handle, const char *name, void(*
                 }
             }
         };
-        if (xTaskCreateRestrictedPinnedToCore(&xRegParameters, (xTaskHandle)p_handle, core_id) != pdPASS) {
-            ESP_LOGE(TAG, "Error creating RestrictedPinnedToCore %s", name);
+
+        error = xTaskCreateRestrictedPinnedToCore(&xRegParameters, (xTaskHandle)p_handle, core_id);
+        if (error != pdPASS) {
+            ESP_LOGE(TAG, "Error [%d] creating RestrictedPinnedToCore %s", error, name);
             goto audio_thread_create_error;
         }
     } else {
-        if (xTaskCreatePinnedToCore(main_func, name, stack, arg, prio, (xTaskHandle)p_handle, core_id) != pdPASS) {
-            ESP_LOGE(TAG, "Error creating task %s", name);
+        error = xTaskCreatePinnedToCore(main_func, name, stack, arg, prio, (xTaskHandle)p_handle, core_id);
+        if (error != pdPASS) {
+            ESP_LOGE(TAG, "Error [%d] creating xTaskCreatePinnedToCore %s", error, name);
             goto audio_thread_create_error;
         }
     }
