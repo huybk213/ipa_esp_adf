@@ -43,7 +43,8 @@
 
 static const char *TAG = "HTTP_STREAM";
 #define MAX_PLAYLIST_LINE_SIZE (512)
-#define HTTP_STREAM_BUFFER_SIZE (2048)
+// #define HTTP_STREAM_BUFFER_SIZE (2048)
+#define HTTP_STREAM_BUFFER_SIZE (4096)      // HuyTV
 
 typedef struct http_stream {
     audio_stream_type_t             type;
@@ -61,7 +62,7 @@ typedef struct http_stream {
 } http_stream_t;
 
 static esp_err_t http_stream_auto_connect_next_track(audio_element_handle_t el);
-
+static uint32_t m_previous_ms = 0;        // HuyTV
 static esp_codec_type_t get_audio_type(const char *content_type)
 {
     if (strcasecmp(content_type, "mp3") == 0 ||
@@ -321,11 +322,12 @@ static char *_playlist_get_next_track(audio_element_handle_t self)
 
 static esp_err_t _http_open(audio_element_handle_t self)
 {
+    m_previous_ms = xTaskGetTickCount();      // HuyTV
     http_stream_t *http = (http_stream_t *)audio_element_getdata(self);
     esp_err_t err;
     char *uri = NULL;
     audio_element_info_t info;
-    ESP_LOGD(TAG, "_http_open");
+    ESP_LOGI(TAG, "_http_open");
 
     if (http->is_open) {
         ESP_LOGE(TAG, "already opened");
@@ -344,6 +346,7 @@ _stream_open_begin:
             goto _stream_open_begin;
         }
         uri = audio_element_get_uri(self);
+        ESP_LOGI(TAG, "%s", uri);
     }
 
     if (uri == NULL) {
@@ -422,7 +425,15 @@ _stream_redirect:
         info.total_bytes = cur_pos;
     }
 
-    ESP_LOGI(TAG, "total_bytes=%d", (int)info.total_bytes);
+    uint32_t diff_ms = xTaskGetTickCount() - m_previous_ms;
+    if (diff_ms == 0)      // HuyTV
+    {
+        diff_ms = 1;
+    }
+
+    ESP_LOGI(TAG, "total_bytes=%d, speed %dKB/s, downloaded time %dms", (int)info.total_bytes, ((int)info.total_bytes*1000 / diff_ms)/(1024), diff_ms);
+    // End
+
     int status_code = esp_http_client_get_status_code(http->client);
     if (status_code == 301 || status_code == 302) {
         esp_http_client_set_redirection(http->client);
@@ -469,7 +480,7 @@ _stream_redirect:
 static esp_err_t _http_close(audio_element_handle_t self)
 {
     http_stream_t *http = (http_stream_t *)audio_element_getdata(self);
-    ESP_LOGD(TAG, "_http_close");
+    ESP_LOGI(TAG, "_http_close");
     while (http->is_open) {
         http->is_open = false;
         if (http->stream_type != AUDIO_STREAM_WRITER) {

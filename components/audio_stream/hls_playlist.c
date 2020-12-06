@@ -128,7 +128,7 @@ void hls_playlist_insert(playlist_t *playlist, char *track_uri)
     track_t *find = NULL;
     STAILQ_FOREACH(find, &playlist->tracks, next) {
         if (strcmp(find->uri, track->uri) == 0) {
-            ESP_LOGW(TAG, "URI exist");
+            ESP_LOGI(TAG, "URI exist");
             audio_free(track->uri);
             audio_free(track);
             return;
