@@ -308,7 +308,7 @@ static esp_err_t _resolve_playlist(audio_element_handle_t self, const char *uri)
     }
 
     if (http->playlist->is_incomplete) {
-        ESP_LOGI(TAG, "Live stream URI. Need to be fetched again!");
+        ESP_LOGD(TAG, "Live stream URI. Need to be fetched again!");
     }
 
     return valid_playlist ? ESP_OK : ESP_FAIL;
@@ -330,7 +330,7 @@ static esp_err_t _http_open(audio_element_handle_t self)
     esp_err_t err;
     char *uri = NULL;
     audio_element_info_t info;
-    ESP_LOGI(TAG, "_http_open");
+    ESP_LOGD(TAG, "_http_open");
 
     if (http->is_open) {
         ESP_LOGE(TAG, "already opened");
@@ -349,7 +349,7 @@ _stream_open_begin:
             goto _stream_open_begin;
         }
         uri = audio_element_get_uri(self);
-        ESP_LOGI(TAG, "%s", uri);
+        ESP_LOGD(TAG, "%s", uri);
     }
 
     if (uri == NULL) {
@@ -434,7 +434,7 @@ _stream_redirect:
         diff_ms = 1;
     }
 
-    ESP_LOGI(TAG, "total_bytes=%d, speed %dKB/s, downloaded time %dms", (int)info.total_bytes, ((int)info.total_bytes*1000 / diff_ms)/(1024), diff_ms);
+    ESP_LOGD(TAG, "total_bytes=%d, speed %dKB/s, downloaded time %dms", (int)info.total_bytes, ((int)info.total_bytes*1000 / diff_ms)/(1024), diff_ms);
     // End
 
     int status_code = esp_http_client_get_status_code(http->client);
@@ -483,7 +483,7 @@ _stream_redirect:
 static esp_err_t _http_close(audio_element_handle_t self)
 {
     http_stream_t *http = (http_stream_t *)audio_element_getdata(self);
-    ESP_LOGI(TAG, "_http_close");
+    ESP_LOGD(TAG, "_http_close");
     while (http->is_open) {
         http->is_open = false;
         if (http->stream_type != AUDIO_STREAM_WRITER) {
@@ -546,7 +546,8 @@ static int _http_read(audio_element_handle_t self, char *buffer, int len, TickTy
     }
     if (rlen <= 0) {
         http->_errno = esp_http_client_get_errno(http->client);
-        ESP_LOGW(TAG, "No more data,errno:%d, total_bytes:%llu, rlen = %d", http->_errno, info.byte_pos, rlen);
+        if (http->_errno)
+            ESP_LOGW(TAG, "No more data,errno:%d, total_bytes:%llu, rlen = %d", http->_errno, info.byte_pos, rlen);
         //ESP_LOGW(TAG, "No more data,errno:%d, total_bytes:%llu, rlen = %d", errno, info.byte_pos, rlen);
         if (http->_errno != 0) {  // Error occuered, reset connection
             ESP_LOGW(TAG, "Got %d errno(%s)", http->_errno, strerror(http->_errno));
@@ -772,7 +773,7 @@ esp_err_t http_stream_fetch_again(audio_element_handle_t el)
         ESP_LOGI(TAG, "Finished playing.");
         return ESP_ERR_NOT_SUPPORTED;
     } else {
-        ESP_LOGI(TAG, "Fetching again...");
+        ESP_LOGD(TAG, "Fetching again...");
         audio_element_set_uri(el, http->playlist->host_uri);
         http->is_playlist_resolved = false;
     }

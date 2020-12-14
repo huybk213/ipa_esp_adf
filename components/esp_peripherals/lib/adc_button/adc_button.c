@@ -154,6 +154,7 @@ static int get_adc_voltage(int channel)
     for (int i = 0; i < ADC_SAMPLES_NUM; i++) {
         data[i] = adc1_get_raw((adc1_channel_t)channel);
     }
+
 #endif
 
     for (int j = 0; j < ADC_SAMPLES_NUM - 1; j++) {
@@ -328,7 +329,12 @@ static void button_task(void *parameters)
             switch (cur_state) {
                 case ADC_BTN_STATE_ADC: {
                         int adc = get_adc_voltage(info->adc_ch);
-                        ESP_LOGD(TAG, "ADC:%d", adc);
+                        // static uint32_t i = 0;
+                        // if (i++ == 500)
+                        // {
+                        //     ESP_LOGI(TAG, "ADC:%d", adc);
+                        //     i = 0;
+                        // }
                         for (int i = 0; i < info->total_steps; ++i) {
                             if (btn_dscp[i].active_id > ADC_BTN_INVALID_ID) {
                                 act_id = i;

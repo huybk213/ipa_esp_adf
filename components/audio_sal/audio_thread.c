@@ -45,7 +45,9 @@ esp_err_t audio_thread_create(audio_thread_t *p_handle, const char *name, void(*
                               uint32_t stack, int prio, bool stack_in_ext, int core_id)
 {
 // #if CONFIG_IDF_TARGET_ESP32S2		// HuyTV
-    ESP_LOGW(TAG, "[HuyTV] stack_in_ext %s, force to false", stack_in_ext ? "TRUE" : "FALSE");
+    ESP_LOGW(TAG, "[%s] ESP32S2, task create in core 0, stack in internal", __FUNCTION__);
+    stack_in_ext = false;
+    core_id = 0;
 //     // vTaskDelay(100);
 //     // if (core_id == 0)
 //     //     core_id = 1;        // HuyTV workaround for esp32s2

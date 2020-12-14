@@ -426,7 +426,7 @@ esp_err_t periph_ws2812_control(esp_periph_handle_t periph, periph_ws2812_ctrl_c
         periph_ws2812->state[i].mode = control_cfg[i].mode;
     }
 
-    esp_periph_start_timer(periph, INTERVAL_TIME_MS / portTICK_RATE_MS, ws2812_timer_handler);
+        esp_periph_start_timer(periph, INTERVAL_TIME_MS / portTICK_RATE_MS, ws2812_timer_handler);
 
     return ESP_OK;
 }

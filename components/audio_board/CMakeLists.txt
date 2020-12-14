@@ -70,6 +70,15 @@ set(COMPONENT_SRCS
 )
 endif()
 
+if (CONFIG_ESP32_S2_KALUGA_1_V1_3_BOARD)
+message(STATUS "Current board name is " CONFIG_ESP32_S2_KALUGA_1_V1_3_BOARD)
+list(APPEND COMPONENT_ADD_INCLUDEDIRS ./esp32_s2_kaluga_1_v1_3)
+set(COMPONENT_SRCS
+./esp32_s2_kaluga_1_v1_3/board.c
+./esp32_s2_kaluga_1_v1_3/board_pins_config.c
+)
+endif()
+
 if (CONFIG_ESP32_AITHINKER_A1S_BOARD)
 message(STATUS "Current board name is " CONFIG_ESP32_AITHINKER_A1S_BOARD)
 list(APPEND COMPONENT_ADD_INCLUDEDIRS ./aithinker_a1s)
